@@ -1,0 +1,24 @@
+[
+    {server, [
+        {cacertfile,"##PWD##/tls-gen/basic/result/ca_certificate.pem"},
+        {certfile, "##PWD##/tls-gen/basic/result/server_certificate.pem"},
+        {keyfile, "##PWD##/tls-gen/basic/result/server_key.pem"},
+        {secure_renegotiate, true},
+        {verify, verify_peer},
+        {fail_if_no_peer_cert, true},
+        {customize_hostname_check, [
+            {match_fun, public_key:pkix_verify_hostname_match_fun(https)}
+        ]}
+    ]},
+    {client, [
+        {cacertfile,"##PWD##/tls-gen/basic/result/ca_certificate.pem"},
+        {certfile, "##PWD##/tls-gen/basic/result/client_certificate.pem"},
+        {keyfile, "##PWD##/tls-gen/basic/result/client_key.pem"},
+        {secure_renegotiate, true},
+        {verify, verify_peer},
+        {fail_if_no_peer_cert, true},
+        {customize_hostname_check, [
+            {match_fun, public_key:pkix_verify_hostname_match_fun(https)}
+        ]}
+    ]}
+].
