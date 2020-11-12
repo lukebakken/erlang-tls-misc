@@ -2,6 +2,16 @@
 
 Example of using TLS for inter-node Erlang communication.
 
+## Resources
+
+https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/ssl.html
+
+https://elixirforum.com/t/ssl-with-tortoise-lib-not-working/18256/4
+
+https://github.com/vernemq/vernemq/issues/1485
+
+https://github.com/hexpm/hex/pull/798
+
 ## Prerequisites
 
 * `bash` version 4 or higher (tested with `5.0.18`)
