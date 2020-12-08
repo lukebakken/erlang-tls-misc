@@ -1,6 +1,6 @@
 -module(tls_server).
 
--export([start/0]).
+-export([start/0, sni_fun/1]).
 
 start() ->
     ssl:start(),
@@ -8,7 +8,8 @@ start() ->
         {cacertfile, "./tls-gen/basic/result/ca_certificate.pem"},
         {certfile, "./tls-gen/basic/result/server_certificate.pem"},
         {keyfile, "./tls-gen/basic/result/server_key.pem"},
-        {reuseaddr, true}
+        {reuseaddr, true},
+        {sni_fun, fun tls_server:sni_fun/1}
     ],
     io:format("[INFO] before ssl:listen(9999, Opts)~n", []),
     {ok, ListenSocket} = ssl:listen(9999, Opts),
@@ -17,7 +18,17 @@ start() ->
     {ok, TLSTransportSocket} = ssl:transport_accept(ListenSocket),
     io:format("[INFO] after ssl:transport_accept~n", []),
     io:format("[INFO] before ssl:handshake~n", []),
-    {ok, Socket} = ssl:handshake(TLSTransportSocket),
+    Socket =
+        case ssl:handshake(TLSTransportSocket) of
+            {ok, S, Ext} ->
+                io:format("[INFO] ssl:handshake Ext: ~p~n", [Ext]),
+                S;
+            {ok, S} ->
+                S;
+            Error ->
+                io:format("[ERROR] ssl:handshake Error: ~p~n", [Error]),
+                init:stop()
+        end,
     io:format("[INFO] after ssl:handshake~n", []),
     loop(Socket).
 
@@ -28,7 +39,11 @@ loop(Socket) ->
             io:format("Data: ~p~n", [Data]),
             loop(Socket)
     after 10000 ->
-            io:format("DONE!~n", []),
-            ssl:close(Socket),
-            init:stop()
+        io:format("DONE!~n", []),
+        ssl:close(Socket),
+        init:stop()
     end.
+
+sni_fun(ServerName) ->
+    io:format("[INFO] sni_fun ServerName: ~p~n", [ServerName]),
+    [].
