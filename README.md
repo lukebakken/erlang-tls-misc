@@ -1,6 +1,6 @@
-# erlang-inet-dist
+# erlang-tls-misc
 
-Example of using TLS for inter-node Erlang communication.
+Miscellaneous Erlang TLS examples.
 
 ## Resources
 
