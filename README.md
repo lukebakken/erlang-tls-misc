@@ -21,7 +21,7 @@ https://github.com/hexpm/hex/pull/798
 * `openssl` (tested with `1.1.1h`)
 * `erl` (tested with `23.1.2`)
 
-## Usage
+## TLS-encrypted distribution usage
 
 * Set up environment and certificates:
 
@@ -56,3 +56,29 @@ Eshell V11.1.2  (abort with ^G)
 ok
 (b@shostakovich)3>
 ```
+
+## TLS client usage
+
+* Setup Python environment:
+
+```
+./setup-py.sh
+```
+
+* Start RabbitMQ:
+
+```
+make RABBITMQ_CONFIG_FILE="/home/lbakken/development/lukebakken/erlang-tls-misc/rabbitmq-tls.config" PLUGINS='rabbitmq_management rabbitmq_top' LOG=debug run-broker
+```
+
+* Run Python client:
+
+```
+source venv/bin/activate
+python ./tls-client.py
+```
+
+RabbitMQ log should have entries like these:
+
+```
+

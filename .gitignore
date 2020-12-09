@@ -1,2 +1,5 @@
 inet-dist-tls.config
+rabbitmq-tls.config
 *.beam
+erl_crash.dump
+venv/
