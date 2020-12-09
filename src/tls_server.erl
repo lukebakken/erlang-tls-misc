@@ -30,6 +30,7 @@ start() ->
                 init:stop()
         end,
     io:format("[INFO] after ssl:handshake~n", []),
+    io:format("[INFO] ssl:handshake sni_hostname: ~p~n", [get_sni_hostname(Socket)]),
     loop(Socket).
 
 loop(Socket) ->
@@ -38,7 +39,7 @@ loop(Socket) ->
         Data ->
             io:format("Data: ~p~n", [Data]),
             loop(Socket)
-    after 10000 ->
+    after 5000 ->
         io:format("DONE!~n", []),
         ssl:close(Socket),
         init:stop()
@@ -47,3 +48,14 @@ loop(Socket) ->
 sni_fun(ServerName) ->
     io:format("[INFO] sni_fun ServerName: ~p~n", [ServerName]),
     [].
+
+get_sni_hostname(Socket) ->
+    case ssl:connection_information(Socket, [sni_hostname]) of
+        {ok, []} ->
+            undefined;
+        {ok, [{sni_hostname, Hostname}]} ->
+            Hostname;
+        Error ->
+            io:format("[ERROR] ssl:connection_information Error: ~p~n", [Error]),
+            undefined
+    end.
