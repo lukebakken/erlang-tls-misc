@@ -81,4 +81,7 @@ python ./tls-client.py
 RabbitMQ log should have entries like these:
 
 ```
-
+2020-12-09 09:31:57.137 [debug] <0.772.0> @@@@@@@@ sni_fun ServerName: "shostakovich"
+2020-12-09 09:31:57.142 [debug] <0.775.0> @@@@@@@@ sni_info items value: [{sni_hostname,"shostakovich"}]
+2020-12-09 09:31:57.142 [debug] <0.775.0> @@@@@@@@ sni_info SNI value: shostakovich
+```
