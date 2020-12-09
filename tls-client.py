@@ -1,5 +1,6 @@
 import logging
 import pika
+import socket
 import ssl
 import time
 
@@ -13,7 +14,7 @@ context = ssl.create_default_context(cafile="./tls-gen/basic/result/ca_certifica
 context.load_cert_chain("./tls-gen/basic/result/client_certificate.pem",
                         "./tls-gen/basic/result/client_key.pem")
 
-ssl_options = pika.SSLOptions(context, server_hostname="shostakovich")
+ssl_options = pika.SSLOptions(context, server_hostname=socket.gethostname())
 
 conn_params = pika.ConnectionParameters(port=5671, ssl_options=ssl_options)
 with pika.BlockingConnection(conn_params) as conn:
