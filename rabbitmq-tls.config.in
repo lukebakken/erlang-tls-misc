@@ -9,8 +9,8 @@
         {loopback_users, []},
         {ssl_listeners, [5671]},
         {ssl_options, [
-            {keyfile, "##PWD##/tls-gen/basic/result/server_key.pem"},
-            {certfile, "##PWD##/tls-gen/basic/result/server_certificate.pem"},
+            {keyfile, "##PWD##/tls-gen/basic/result/server_##HOSTNAME##_key.pem"},
+            {certfile, "##PWD##/tls-gen/basic/result/server_##HOSTNAME##_certificate.pem"},
             {cacertfile, "##PWD##/tls-gen/basic/result/ca_certificate.pem"},
             {fail_if_no_peer_cert, false},
             {verify, verify_none},
