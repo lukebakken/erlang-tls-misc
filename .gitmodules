@@ -1,3 +1,6 @@
 [submodule "tls-gen"]
 	path = tls-gen
-	url = https://github.com/michaelklishin/tls-gen.git
+	url = git@github.com:rabbitmq/tls-gen.git
+[submodule "redbug"]
+	path = redbug
+	url = https://github.com/massemanet/redbug.git

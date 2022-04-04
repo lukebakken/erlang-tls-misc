@@ -3,47 +3,71 @@
 -export([start/0, sni_fun/1]).
 
 start() ->
+    inets:start(),
     ssl:start(),
-    Opts = [
+    %% {ok, HttpcOpts} = httpc:get_options(all),
+    %% ok = io:format("[INFO] httpc options ~p~n", [HttpcOpts]),
+    %% RedbugRV = redbug:start("ets:insert", [{msgs, 1000}, {time, 60000}]),
+    %% ok = io:format("[INFO] redbug RV: ~p~n", [RedbugRV]),
+    {ok, Hostname} = inet:gethostname(),
+    SslOpts = [
         {cacertfile, "./tls-gen/basic/result/ca_certificate.pem"},
-        {certfile, "./tls-gen/basic/result/server_certificate.pem"},
-        {keyfile, "./tls-gen/basic/result/server_key.pem"},
-        {reuseaddr, true},
-        {sni_fun, fun tls_server:sni_fun/1}
+        {certfile, io_lib:format("./tls-gen/basic/result/server_~s_certificate.pem", [Hostname])},
+        {keyfile, io_lib:format("./tls-gen/basic/result/server_~s_key.pem", [Hostname])},
+        {reuseaddr, false},
+        {sni_fun, fun tls_server:sni_fun/1},
+        {crl_check, true},
+        {crl_cache, {custom_ssl_crl_cache, {internal, [{http, 5000}]}}},
+        {verify, verify_peer},
+        {fail_if_no_peer_cert, true}
     ],
     ok = io:format("[INFO] before ssl:listen(9999, Opts)~n", []),
-    {ok, ListenSocket} = ssl:listen(9999, Opts),
+    {ok, ListenSocket} = ssl:listen(9999, SslOpts),
     ok = io:format("[INFO] after ssl:listen(9999, Opts)~n", []),
+    accept_and_handshake(ListenSocket).
+
+accept_and_handshake(ListenSocket) ->
     ok = io:format("[INFO] before ssl:transport_accept~n", []),
     {ok, TLSTransportSocket} = ssl:transport_accept(ListenSocket),
     ok = io:format("[INFO] after ssl:transport_accept~n", []),
     ok = io:format("[INFO] before ssl:handshake~n", []),
-    Socket =
+    Result =
         case ssl:handshake(TLSTransportSocket) of
             {ok, S, Ext} ->
                 ok = io:format("[INFO] ssl:handshake Ext: ~p~n", [Ext]),
-                S;
-            {ok, S} ->
-                S;
+                {ok, S};
+            {ok, _} = Res ->
+                Res;
             Error ->
                 ok = io:format("[ERROR] ssl:handshake Error: ~p~n", [Error]),
-                ok = init:stop()
+                Error
         end,
-    ok = io:format("[INFO] after ssl:handshake~n", []),
-    ok = io:format("[INFO] ssl:handshake sni_hostname: ~p~n", [get_sni_hostname(Socket)]),
-    write_keylog(Socket),
-    loop(Socket).
+    case Result of
+        {error, _} ->
+            ok = init:stop();
+        {ok, TlsSocket} ->
+            ok = io:format("[INFO] after ssl:handshake, Socket: ~p~n", [TlsSocket]),
+            ok = io:format("[INFO] ssl:handshake sni_hostname: ~p~n", [get_sni_hostname(TlsSocket)]),
+            write_keylog(TlsSocket),
+            ok = loop(TlsSocket),
+            accept_and_handshake(ListenSocket)
+    end.
 
-loop(Socket) ->
+loop(TlsSocket) ->
     ok = io:format("[INFO] top of loop/2~n", []),
     receive
+        {ssl_closed, TlsSocket} ->
+            ok = io:format("[INFO] shutdown/close socket~n", []),
+            ssl:shutdown(TlsSocket, read_write),
+            ssl:close(TlsSocket),
+            ok;
         Data ->
             ok = io:format("[INFO] Data: ~p~n", [Data]),
-            loop(Socket)
+            loop(TlsSocket)
     after 5000 ->
-        ok = io:format("[INFO] DONE!~n", []),
-        ok = ssl:close(Socket),
-        ok = init:stop()
+        ok = io:format("[INFO] no data in last 5 seconds!~n", []),
+        custom_ssl_crl_cache:clear(),
+        loop(TlsSocket)
     end.
 
 write_keylog(Socket) ->
