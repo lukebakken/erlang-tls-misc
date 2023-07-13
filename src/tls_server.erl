@@ -5,6 +5,7 @@
 start() ->
     inets:start(),
     ssl:start(),
+    ok = io:format("[INFO] tls_server working directory:~tp~n", [file:get_cwd()]),
     %% {ok, HttpcOpts} = httpc:get_options(all),
     %% ok = io:format("[INFO] httpc options ~p~n", [HttpcOpts]),
     %% RedbugRV = redbug:start("ets:insert", [{msgs, 1000}, {time, 60000}]),
@@ -16,14 +17,14 @@ start() ->
         {keyfile, io_lib:format("./tls-gen/basic/result/server_~s_key.pem", [Hostname])},
         {reuseaddr, false},
         {sni_fun, fun tls_server:sni_fun/1},
-        {crl_check, true},
+        {crl_check, false},
         {crl_cache, {custom_ssl_crl_cache, {internal, [{http, 5000}]}}},
         {verify, verify_peer},
         {fail_if_no_peer_cert, true}
     ],
-    ok = io:format("[INFO] before ssl:listen(9999, Opts)~n", []),
-    {ok, ListenSocket} = ssl:listen(9999, SslOpts),
-    ok = io:format("[INFO] after ssl:listen(9999, Opts)~n", []),
+    ok = io:format("[INFO] before ssl:listen(4433, Opts)~n", []),
+    {ok, ListenSocket} = ssl:listen(4433, SslOpts),
+    ok = io:format("[INFO] after ssl:listen(4433, Opts)~n", []),
     accept_and_handshake(ListenSocket).
 
 accept_and_handshake(ListenSocket) ->
