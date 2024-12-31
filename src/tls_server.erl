@@ -25,15 +25,15 @@ start() ->
     ok = io:format("[INFO] before ssl:listen(4433, Opts)~n", []),
     {ok, ListenSocket} = ssl:listen(4433, SslOpts),
     ok = io:format("[INFO] after ssl:listen(4433, Opts)~n", []),
-    accept_and_handshake(ListenSocket).
+    accept_and_handshake(ListenSocket, SslOpts).
 
-accept_and_handshake(ListenSocket) ->
+accept_and_handshake(ListenSocket, SslOpts) ->
     ok = io:format("[INFO] before ssl:transport_accept~n", []),
     {ok, TLSTransportSocket} = ssl:transport_accept(ListenSocket),
     ok = io:format("[INFO] after ssl:transport_accept~n", []),
     ok = io:format("[INFO] before ssl:handshake~n", []),
     Result =
-        case ssl:handshake(TLSTransportSocket) of
+        case ssl:handshake(TLSTransportSocket, SslOpts) of
             {ok, S, Ext} ->
                 ok = io:format("[INFO] ssl:handshake Ext: ~p~n", [Ext]),
                 {ok, S};
@@ -51,7 +51,7 @@ accept_and_handshake(ListenSocket) ->
             ok = io:format("[INFO] ssl:handshake sni_hostname: ~p~n", [get_sni_hostname(TlsSocket)]),
             write_keylog(TlsSocket),
             ok = loop(TlsSocket),
-            accept_and_handshake(ListenSocket)
+            accept_and_handshake(ListenSocket, SslOpts)
     end.
 
 loop(TlsSocket) ->
