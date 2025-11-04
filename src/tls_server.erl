@@ -18,7 +18,8 @@ start() ->
         {crl_check, false},
         {crl_cache, {custom_ssl_crl_cache, {internal, [{http, 5000}]}}},
         {verify, verify_peer},
-        {fail_if_no_peer_cert, true}
+        {fail_if_no_peer_cert, true},
+        {depth, 1}
     ],
     ok = io:format("[INFO] before ssl:listen(4433, Opts)~n", []),
     {ok, ListenSocket} = ssl:listen(4433, SslOpts),
