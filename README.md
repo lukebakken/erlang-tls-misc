@@ -1,87 +1,58 @@
 # erlang-tls-misc
 
-Miscellaneous Erlang TLS examples.
+`one-intermediate` branch has example certs with the following chain:
 
-## Resources
+```
+Root -> Intermediate -> Server / Client
+```
 
-https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/ssl.html
+The `certs/` directory has the following files:
 
-https://elixirforum.com/t/ssl-with-tortoise-lib-not-working/18256/4
-
-https://github.com/vernemq/vernemq/issues/1485
-
-https://github.com/hexpm/hex/pull/798
+| File                              | Description                                   |
+| --------------------------------- | --------------------------------------------- |
+| `ca_certificate.pem`              | Root CA cert                                  |
+| `intermediate_ca_certificate.pem` | Intermediate CA cert                          |
+| `chained_ca_certificate.pem`      | Intermediate -> Root (concatenated)           |
+| `client_certificate.pem`          | Client X509 cert                              |
+| `client_key.pem`                  | Client X509 key                               |
+| `client_full_chain.pem`           | Client -> Intermediate -> Root (concatenated) |
+| `client_with_intermediate.pem`    | Client -> Intermediate (concatenated)         |
+| `server_certificate.pem`          | Server X509 cert                              |
+| `server_key.pem`                  | Server X509 key                               |
 
 ## Prerequisites
 
-* `bash` version 4 or higher (tested with `5.0.18`)
-* `git` (tested with `2.29.2`)
-* `sed` (tested with GNU version `4.8`)
-* `python` (tested with `3.8.6`)
-* `openssl` (tested with `1.1.1h`)
-* `erl` (tested with `23.1.2`)
+* `bash` version 4 or higher (tested with `5.2.21`)
+* `git` (tested with `2.43.0`)
+* `sed` (tested with GNU version `4.9`)
+* `python` (tested with `3.14.0`)
+* `openssl` (tested with `3.0.13`)
+* `erl` (tested with `27.3.4.4`)
 
-## TLS-encrypted distribution usage
+## Running TLS Server
 
-* Set up environment and certificates:
-
-```
-./setup.sh
-```
-
-* Run node a in one terminal:
+The `run-tls-server.sh` script's first argument is to the CA certificate to
+use. The following _only_ uses the Root CA cert, for instance:
 
 ```
-./run-node-a.sh
+./run-tls-server.sh certs/ca_certificate.pem
 ```
 
-* Run node b in another terminal:
+To use the Root CA and Intermediate:
 
 ```
-./run-node-b.sh
+./run-tls-server.sh certs/chained_ca_certificate.pem
 ```
 
-## Expected output:
+## Running TLS Client
 
-```
-$ ./run-node-b.sh 
-Erlang/OTP 23 [erts-11.1.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [hipe]
+The `run-tls-client.sh` script takes one of these arguments:
 
-Eshell V11.1.2  (abort with ^G)
-(b@shostakovich)1> ['a@shostakovich']
+* `no-intermediate` - only use Client X509 cert
+* `intermediate` - use `client_with_intermediate.pem` file, with client and intermediate concatenated
+* `full-chain` - use `client_full_chain.pem` file
 
-(b@shostakovich)1> nodes().
-[a@shostakovich]
-(b@shostakovich)2> init:stop().
-ok
-(b@shostakovich)3>
-```
 
-## TLS client usage
+## Results
 
-* Setup Python environment:
-
-```
-./setup-py.sh
-```
-
-* Start RabbitMQ:
-
-```
-make RABBITMQ_CONFIG_FILE="/home/lbakken/development/lukebakken/erlang-tls-misc/rabbitmq-tls.config" PLUGINS='rabbitmq_management rabbitmq_top' LOG=debug run-broker
-```
-
-* Run Python client:
-
-```
-source venv/bin/activate
-python ./tls-client.py
-```
-
-RabbitMQ log should have entries like these:
-
-```
-2020-12-09 09:31:57.137 [debug] <0.772.0> @@@@@@@@ sni_fun ServerName: "shostakovich"
-2020-12-09 09:31:57.142 [debug] <0.775.0> @@@@@@@@ sni_info items value: [{sni_hostname,"shostakovich"}]
-2020-12-09 09:31:57.142 [debug] <0.775.0> @@@@@@@@ sni_info SNI value: shostakovich
-```
+TL;DR you **MUST** have the intermediate X509 cert available to the Erlang VM for _any_ client cert auth scenario to work.
