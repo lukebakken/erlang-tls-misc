@@ -5,16 +5,14 @@
 start() ->
     inets:start(),
     ssl:start(),
-    ok = io:format("[INFO] tls_server working directory:~tp~n", [file:get_cwd()]),
-    %% {ok, HttpcOpts} = httpc:get_options(all),
-    %% ok = io:format("[INFO] httpc options ~p~n", [HttpcOpts]),
-    %% RedbugRV = redbug:start("ets:insert", [{msgs, 1000}, {time, 60000}]),
-    %% ok = io:format("[INFO] redbug RV: ~p~n", [RedbugRV]),
     {ok, Hostname} = inet:gethostname(),
+    ok = io:format("[INFO] tls_server working directory: ~tp~n", [file:get_cwd()]),
+    ok = io:format("[INFO] tls_server hostname: '~tp'~n", [Hostname]),
+    {ok, CaCertfile} = get_cacertfile(),
     SslOpts = [
-        {cacertfile, "./tls-gen/basic/result/ca_certificate.pem"},
-        {certfile, io_lib:format("./tls-gen/basic/result/server_~s_certificate.pem", [Hostname])},
-        {keyfile, io_lib:format("./tls-gen/basic/result/server_~s_key.pem", [Hostname])},
+        CaCertfile,
+        {certfile, "./certs/server_certificate.pem"},
+        {keyfile, "./certs/server_key.pem"},
         {reuseaddr, false},
         {sni_fun, fun tls_server:sni_fun/1},
         {crl_check, false},
@@ -26,6 +24,19 @@ start() ->
     {ok, ListenSocket} = ssl:listen(4433, SslOpts),
     ok = io:format("[INFO] after ssl:listen(4433, Opts)~n", []),
     accept_and_handshake(ListenSocket, SslOpts).
+
+get_cacertfile() ->
+    get_cacertfile(init:get_argument(cacertfile)).
+
+get_cacertfile(error) ->
+    {ok, {cacertfile, "./certs/ca_certificate.pem"}};
+get_cacertfile({ok, [[CaCertfile|_]]}) ->
+    case filelib:is_regular(CaCertfile) of
+        true ->
+            {ok, {cacertfile, CaCertfile}};
+        _ ->
+            {ok, {cacertfile, "./certs/ca_certificate.pem"}}
+    end.
 
 accept_and_handshake(ListenSocket, SslOpts) ->
     ok = io:format("[INFO] before ssl:transport_accept~n", []),

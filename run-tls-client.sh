@@ -14,7 +14,26 @@ fi
 
 readonly hostname="$(hostname)"
 
-"$openssl_bin" s_client "$openssl_xtra_args" -ign_eof -connect localhost:4433 \
-    -CAfile ./tls-gen/basic/result/ca_certificate.pem \
-    -cert "./tls-gen/basic/result/client_${hostname}_certificate.pem" \
-    -key "./tls-gen/basic/result/client_${hostname}_key.pem" -servername "$hostname"
+case "$1" in
+    no-intermediate)
+        "$openssl_bin" s_client "$openssl_xtra_args" -ign_eof -connect localhost:4433 \
+            -CAfile ./certs/ca_certificate.pem \
+            -cert "./certs/client_certificate.pem" \
+            -key "./certs/client_key.pem" -servername "$hostname"
+        ;;
+    intermediate)
+        "$openssl_bin" s_client "$openssl_xtra_args" -ign_eof -connect localhost:4433 \
+            -CAfile ./certs/ca_certificate.pem \
+            -cert "./certs/client_with_intermediate.pem" \
+            -key "./certs/client_key.pem" -servername "$hostname"
+        ;;
+    full-chain)
+        "$openssl_bin" s_client "$openssl_xtra_args" -ign_eof -connect localhost:4433 \
+            -CAfile ./certs/ca_certificate.pem \
+            -cert "./certs/client_full_chain.pem" \
+            -key "./certs/client_key.pem" -servername "$hostname"
+        ;;
+    *)
+        echo '[ERROR] first arg must be no-intermediate, intermediate, or full-chain' 1>&2
+        ;;
+esac

@@ -11,4 +11,4 @@ erlc +debug "$script_dir/src/tls_server.erl"
 erlc +debug "$script_dir/src/custom_ssl_crl_cache.erl"
 
 # erl -pa "$script_dir/redbug/_build/default/lib/redbug/ebin/" -noinput -s tls_server start
-erl -noinput -s tls_server start
+erl -noinput -cacertfile "$1" -s tls_server start
