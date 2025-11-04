@@ -29,6 +29,15 @@ The `certs/` directory has the following files:
 * `openssl` (tested with `3.0.13`)
 * `erl` (tested with `27.3.4.4`)
 
+`client_certificate.pfx` was created with this command:
+
+```
+openssl pkcs12 -export -out client_certificate.pfx \
+    -inkey client_key.pem \
+    -in client_certificate.pem \
+    -certfile chained_ca_certificate.pem
+```
+
 ## Running TLS Server
 
 The `run-tls-server.sh` script's first argument is to the CA certificate to
